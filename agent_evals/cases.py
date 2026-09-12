@@ -49,6 +49,12 @@ class Expectations:
     must_contain: tuple[str, ...] = ()
     must_not_contain: tuple[str, ...] = ()
 
+    # Substring checks ignore case by default, because most expectations
+    # are about wording rather than capitalization. A case sets this True
+    # when the capitalization is the point, for example a rule requiring
+    # the word HERE in capitals.
+    case_sensitive: bool = False
+
     # Checked by scorers.fuzzy. The threshold lives on the case rather than
     # in the scorer because the right bar differs per case: a formulaic
     # confirmation should match a reference closely, an open-ended reply
@@ -95,6 +101,7 @@ _CASE_KEYS = {"id", "skill", "input", "expect", "note"}
 _EXPECT_KEYS = {
     "must_contain",
     "must_not_contain",
+    "case_sensitive",
     "reference",
     "threshold",
     "judge",
@@ -162,11 +169,24 @@ def _parse_expectations(path: Path, raw: object) -> Expectations:
     if judge is not None and (not isinstance(judge, str) or not judge.strip()):
         _fail(path, "expect.judge must be a non-empty string")
 
+    case_sensitive = raw.get("case_sensitive", False)
+    if not isinstance(case_sensitive, bool):
+        _fail(path, "expect.case_sensitive must be true or false")
+    if "case_sensitive" in raw and not (
+        raw.get("must_contain") or raw.get("must_not_contain")
+    ):
+        _fail(
+            path,
+            "expect.case_sensitive set but there are no substring checks "
+            "for it to apply to",
+        )
+
     expectations = Expectations(
         must_contain=_string_list(path, raw.get("must_contain"), "must_contain"),
         must_not_contain=_string_list(
             path, raw.get("must_not_contain"), "must_not_contain"
         ),
+        case_sensitive=case_sensitive,
         reference=reference,
         threshold=float(threshold),
         judge=judge,

@@ -52,9 +52,9 @@ A case is one labeled example: an input to a skill, plus what is expected
 back. Cases are YAML, one file per case in `cases/`, and the filename must
 match the id.
 
-Cases load and validate today, and the runner executes them. The scorers
-that read these expectations are not built yet, so output is captured but
-nothing is scored against it so far.
+Cases load and validate, the runner executes them, and the exact scorer
+checks the substring expectations. The fuzzy and judge scorers are not
+built yet, so `reference` and `judge` are parsed but not acted on.
 
 ```yaml
 id: missing-price-quote        # must match the filename
@@ -134,6 +134,37 @@ to a traceback.
 The API key is read from `ANTHROPIC_API_KEY` by the SDK. It is never read
 from a file in this repo, never written anywhere, and never stored on a
 result.
+
+## Scoring
+
+Every scorer returns the same shape: a pass flag, a score from 0 to 1, and
+a reason. The reason is required, on a pass as well as a failure, because a
+result that does not say why is not worth reading.
+
+**The score and the pass flag are separate.** A case requiring four phrases
+that finds three scores 0.75 and still fails. Both numbers say something
+different: the flag answers "is this correct", the score answers "how far
+off is it". A prompt change that moves a case from 0.25 to 0.75 is progress
+worth seeing, even though the case fails at both ends, and collapsing the
+two into a bool would hide exactly the trend this harness exists to report.
+
+A scorer returns nothing at all when a case gives it no expectations to
+check. That is different from scoring zero: a skipped check should not drag
+down a pass rate.
+
+Failure reasons name the specific strings, not a count:
+
+```
+missing "HERE" (8/9 checks passed)
+
+missing "Enjoy your day,"; forbidden "I hope this email finds you well",
+"—" present (2/9 checks passed, case-insensitive)
+```
+
+Substring checks ignore case by default, since most expectations are about
+wording. A case sets `case_sensitive: true` when the capitalization is the
+point, such as the style guide's rule that links are labeled HERE in
+capitals.
 
 ## What this does not do
 

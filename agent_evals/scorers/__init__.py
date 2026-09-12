@@ -15,3 +15,15 @@ Every scorer takes a response and a case, and returns a score with a
 reason. The reason is required: a number without an explanation is not
 actionable when a run regresses.
 """
+
+from agent_evals.scorers.base import Score, Scorer
+from agent_evals.scorers.exact import exact_scorer
+
+# A plain dict, not a registry. Three scorers do not justify dynamic
+# loading or a plugin system, and the indirection would cost more in
+# readability than it saves. Add a scorer by adding a line here.
+SCORERS: dict[str, Scorer] = {
+    exact_scorer.name: exact_scorer,
+}
+
+__all__ = ["Score", "Scorer", "SCORERS", "exact_scorer"]

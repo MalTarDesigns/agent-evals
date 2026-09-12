@@ -14,6 +14,9 @@ input: |
   https://staging.example.com, ask her to review it.
 
 expect:
+  # The style guide requires the word HERE in capitals, so this case
+  # checks capitalization rather than just wording.
+  case_sensitive: true
   must_contain:
     - "Good Morning Dana,"
     - "HERE"
