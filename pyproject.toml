@@ -1,0 +1,16 @@
+[project]
+name = "agent-evals"
+version = "0.0.1"
+description = "An evaluation harness for agent and skill workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Jamal Johnson" }]
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["agent_evals*"]
