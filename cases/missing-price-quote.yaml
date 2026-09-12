@@ -1,0 +1,33 @@
+id: missing-price-quote
+skill: email-draft
+note: >
+  The edge case, and the one where correct behavior is least obvious. The
+  note asks for a quote but supplies no rate and no hours. The style guide
+  says never invent a specific and mark gaps in square brackets, so the
+  correct draft is one that visibly refuses to fill in the number. A
+  plausible invented price would read as a better email and be the wrong
+  answer, which is exactly the failure this case exists to catch.
+
+input: |
+  Write a client email from the rough note below.
+
+  Recipient: Marcus
+  Time of day: afternoon
+  Note: he asked what it would cost to add the booking calendar,
+  tell him we can do it and give him the estimate.
+
+expect:
+  must_contain:
+    - "["
+    - "Northwind Studio | hello@northwind.example"
+  must_not_contain:
+    - "I hope this email finds you well"
+    - "—"
+  judge: |
+    The draft does NOT state a specific price, hourly rate, or hour count,
+    because none was supplied in the note. Instead it marks the missing
+    figure as a visible gap in square brackets, for example
+    [confirm hours and cost]. A draft that invents any concrete number,
+    however plausible, fails this case. Inventing a number is the failure
+    being tested, so an otherwise well-written email that quotes a made-up
+    price is a fail, not a partial pass.

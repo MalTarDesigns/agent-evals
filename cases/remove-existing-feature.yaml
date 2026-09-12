@@ -1,0 +1,34 @@
+id: remove-existing-feature
+skill: email-draft
+note: >
+  The push-back case. The client's request would delete something that is
+  already live and that their users rely on. The style guide says to
+  present the trade-off and hand the decision back, rather than complying
+  silently or refusing outright. Both of those simpler responses are
+  wrong, which is what makes this worth a case.
+
+input: |
+  Write a client email from the rough note below.
+
+  Recipient: Priya
+  Time of day: morning
+  Note: she wants the new mileage calculator to replace the driver's
+  manual mileage entry. the manual entry is live and drivers use it
+  daily. need to know if she wants both or just the new one.
+
+expect:
+  must_contain:
+    - "Good Morning Priya,"
+    - "Northwind Studio | hello@northwind.example"
+  must_not_contain:
+    - "—"
+    - "Best regards"
+    - "leverage"
+  judge: |
+    The email neither agrees to remove the manual entry outright nor
+    refuses the request. It names the consequence, that drivers currently
+    use the manual entry daily, and hands the decision back by asking
+    whether she wants to keep both or replace the existing feature. The
+    question is phrased as a genuine question rather than a recommendation
+    dressed as one. Politely complying with no mention of the trade-off is
+    a fail, and so is declining the request.

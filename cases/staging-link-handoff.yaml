@@ -1,0 +1,32 @@
+id: staging-link-handoff
+skill: email-draft
+note: >
+  The straightforward case. All the facts are supplied and the task is
+  routine, so a correct draft is mostly a matter of following the style
+  guide. If this one fails, something is broken at the basics.
+
+input: |
+  Write a client email from the rough note below.
+
+  Recipient: Dana
+  Time of day: morning
+  Note: staging site is updated with the new gallery, link is
+  https://staging.example.com, ask her to review it.
+
+expect:
+  must_contain:
+    - "Good Morning Dana,"
+    - "HERE"
+    - "Let me know if you have any questions."
+    - "Enjoy your day,"
+    - "Northwind Studio | hello@northwind.example"
+  must_not_contain:
+    - "I hope this email finds you well"
+    - "Best regards"
+    - "—"
+    - "don't hesitate"
+  judge: |
+    The email gets to the point in the first sentence after the greeting,
+    with no throat-clearing and no restating of what the client already
+    knows. The request to review is phrased as a question or an invitation,
+    not as an instruction. The body stays under roughly 150 words.

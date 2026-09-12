@@ -41,6 +41,68 @@ has drifted into generic assistant register.
 A skill like this is where exact-match testing alone breaks down, which is the
 reason this project exists.
 
+The real skill is personal and stays unpublished. What ships here is
+`skills/email-draft/STYLE.md`, a style guide for a design agency that does
+not exist, written to have the same three-level shape. The cases in `cases/`
+run against that.
+
+## The case format
+
+A case is one labeled example: an input to a skill, plus what is expected
+back. Cases are YAML, one file per case in `cases/`, and the filename must
+match the id.
+
+Cases load and validate today. The scorers that read these expectations are
+not built yet, so nothing is scored against them so far.
+
+```yaml
+id: missing-price-quote        # must match the filename
+skill: email-draft             # which skill is under test
+note: >                        # what this case probes, for a human
+  The note asks for a quote but supplies no rate and no hours, so the
+  correct draft is one that refuses to fill in the number.
+
+input: |                       # what gets sent to the skill
+  Write a client email from the rough note below.
+  Recipient: Marcus
+  Note: he asked what it would cost to add the booking calendar.
+
+expect:
+  # Checked by the exact scorer. Binary, no interpretation.
+  must_contain:
+    - "["
+  must_not_contain:
+    - "I hope this email finds you well"
+
+  # Checked by the fuzzy scorer. Optional. The threshold lives on the case
+  # because the right bar differs per case.
+  reference: "We can add the booking calendar. It will take about
+    [confirm hours] to complete."
+  threshold: 0.7
+
+  # Checked by the judge scorer. Plain English, because the judge reads prose.
+  judge: |
+    The draft does NOT state a specific price or hour count, because none
+    was supplied. It marks the missing figure as a visible gap in square
+    brackets. A draft that invents a plausible number fails this case.
+```
+
+Each expectation block maps to one scorer. All three are individually
+optional, and **a case with none of them is rejected at load time**. A case
+that scores nothing would report a pass and inflate the pass rate, which is
+the one number the harness exists to produce.
+
+Validation errors name the file and the problem:
+
+```
+cases/oops.yaml: unknown key(s) in 'expect': must_countain.
+Allowed: judge, must_contain, must_not_contain, reference, threshold
+```
+
+Unknown keys are an error rather than ignored, because a typo would
+otherwise drop an expectation silently and the case would pass for the
+wrong reason.
+
 ## What this does not do
 
 These are non-goals, not gaps to be filled later:
