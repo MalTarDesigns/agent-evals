@@ -52,8 +52,9 @@ A case is one labeled example: an input to a skill, plus what is expected
 back. Cases are YAML, one file per case in `cases/`, and the filename must
 match the id.
 
-Cases load and validate today. The scorers that read these expectations are
-not built yet, so nothing is scored against them so far.
+Cases load and validate today, and the runner executes them. The scorers
+that read these expectations are not built yet, so output is captured but
+nothing is scored against it so far.
 
 ```yaml
 id: missing-price-quote        # must match the filename
@@ -102,6 +103,37 @@ Allowed: judge, must_contain, must_not_contain, reference, threshold
 Unknown keys are an error rather than ignored, because a typo would
 otherwise drop an expectation silently and the case would pass for the
 wrong reason.
+
+## How it works
+
+The runner calls the Claude API directly. It reads the skill's instructions
+from `skills/<name>/STYLE.md`, sends them as the system prompt with the
+case input as the user message, and captures the response.
+
+The alternative was to shell out to Claude Code, which would run the skill
+the way it actually runs in practice. Calling the API directly won on two
+points: it is testable, because the client can be replaced with a fake and
+the whole test suite runs with no network and no API key, and the harness
+stays usable for anyone who does not have Claude Code installed. The cost
+is that the harness evaluates the skill's instructions rather than the full
+Claude Code environment those instructions normally run inside.
+
+Two things the runner deliberately does not do:
+
+- **It does not pin temperature or cache responses.** Non-determinism is
+  what this measures, so removing it would defeat the purpose.
+- **It does not retry beyond a single rate-limit retry.** A harness that
+  retries hard turns a rate-limited run into a hang, and a hung run is
+  worse than a failed one because nobody knows how long to wait.
+
+Failures are values rather than exceptions. A case whose call times out
+comes back as a result marked errored, with the reason, so a run of twenty
+cases reports nineteen results and one error instead of losing everything
+to a traceback.
+
+The API key is read from `ANTHROPIC_API_KEY` by the SDK. It is never read
+from a file in this repo, never written anywhere, and never stored on a
+result.
 
 ## What this does not do
 
