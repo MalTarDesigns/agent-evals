@@ -104,6 +104,34 @@ Unknown keys are an error rather than ignored, because a typo would
 otherwise drop an expectation silently and the case would pass for the
 wrong reason.
 
+## Setup
+
+```bash
+git clone https://github.com/MalTarDesigns/agent-evals
+cd agent-evals
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+The runner needs an Anthropic API key. Either export it:
+
+```bash
+export ANTHROPIC_API_KEY=your-key
+```
+
+or copy `.env.example` to `.env` and fill it in. The file is gitignored.
+An exported variable wins over the file, so a one-off export does what you
+expect.
+
+Then run the tests, which make no API calls and need no key:
+
+```bash
+pytest
+```
+
+`AGENT_EVALS_MODEL` overrides the model for a run, which is how the same
+cases get compared across model versions. It defaults to `claude-opus-5`.
+
 ## How it works
 
 The runner calls the Claude API directly. It reads the skill's instructions

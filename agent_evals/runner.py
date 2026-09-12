@@ -29,6 +29,7 @@ from pathlib import Path
 import anthropic
 
 from agent_evals.cases import Case
+from agent_evals.config import load_env, model_override
 
 # Recorded in every RunResult. Comparing behavior across model versions is
 # the reason this harness exists, so the model is part of the result rather
@@ -131,7 +132,7 @@ def _extract_text(response: object) -> str:
 
 def run_case(
     case: Case,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     skills_root: Path | str = DEFAULT_SKILLS_ROOT,
     client: anthropic.Anthropic | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
@@ -147,6 +148,14 @@ def run_case(
     responses, would make runs repeatable and would defeat the purpose:
     this harness exists to measure real, non-deterministic behavior.
     """
+    # Resolution order: the argument, then AGENT_EVALS_MODEL, then the
+    # default. An env override lets the same cases be re-run against a
+    # different model without editing code, which is the comparison this
+    # harness exists to make.
+    if model is None:
+        load_env()
+        model = model_override() or DEFAULT_MODEL
+
     def failed(failure: Failure, detail: str, elapsed: float = 0.0) -> RunResult:
         return RunResult(
             case_id=case.id,
@@ -162,10 +171,13 @@ def run_case(
     except FileNotFoundError as exc:
         return failed(Failure.SKILL_NOT_FOUND, str(exc))
 
-    # The SDK reads ANTHROPIC_API_KEY from the environment. The key is never
-    # read from a file in this repo, never written anywhere, and never put
-    # into a RunResult.
+    # The SDK reads ANTHROPIC_API_KEY from the environment. load_env puts a
+    # local .env into the environment first, if one exists, so a fresh
+    # clone runs without the reader having to know what to export. The key
+    # itself is never read by this code, never written anywhere, and never
+    # put into a RunResult.
     if client is None:
+        load_env()
         client = anthropic.Anthropic(timeout=timeout)
 
     request = {
@@ -252,7 +264,7 @@ def run_case(
 
 def run_cases(
     cases: list[Case],
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     skills_root: Path | str = DEFAULT_SKILLS_ROOT,
     client: anthropic.Anthropic | None = None,
 ) -> list[RunResult]:
