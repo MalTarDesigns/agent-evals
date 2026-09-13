@@ -28,6 +28,15 @@ expect:
     - "Best regards"
     - "—"
     - "don't hesitate"
+  # A reference for the fuzzy scorer. The threshold is well below the
+  # default: a correct draft will carry these facts in its own wording,
+  # not reproduce this text, so a high bar would only measure whether the
+  # model happened to pick the same phrasing.
+  reference: |
+    The staging site is updated with the new gallery. You can see it HERE.
+    Please take a look and let me know if everything is good on your end.
+  threshold: 0.35
+
   judge: |
     The email gets to the point in the first sentence after the greeting,
     with no throat-clearing and no restating of what the client already

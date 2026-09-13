@@ -194,6 +194,32 @@ wording. A case sets `case_sensitive: true` when the capitalization is the
 point, such as the style guide's rule that links are labeled HERE in
 capitals.
 
+### Fuzzy similarity
+
+The fuzzy scorer uses token-level F1 against the case's reference text.
+Precision penalizes a rambling response that happens to contain the
+reference, recall penalizes one that drops most of it, and the harmonic
+mean means a response has to do both to score well.
+
+**What it misses.** It does not understand meaning. "The site is live" and
+"The site is not live" score almost identically, because they share every
+token but one. Embedding similarity would catch that, and was rejected on
+cost rather than quality: it would add a dependency and an API call per
+comparison, and a scorer meant to run on every change should be free to
+run. Judging meaning is the judge scorer's job.
+
+Text is lowercased and stripped of punctuation before comparison.
+Stopwords are deliberately **not** removed. For a style guide, "let me know
+if you have any questions" is almost entirely stopwords, and removing them
+would erase the phrase this harness most wants to track.
+
+The default threshold of 0.8 is arbitrary and is labeled as such in the
+code. It has not been calibrated against human judgment, because that
+would need labeled data this project does not have. Each case overrides
+it, and the shipped case that uses a reference sets 0.35, because a
+correct draft carries the same facts in its own wording rather than
+reproducing the reference.
+
 ## What this does not do
 
 These are non-goals, not gaps to be filled later:
