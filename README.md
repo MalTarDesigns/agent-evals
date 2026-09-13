@@ -52,9 +52,10 @@ A case is one labeled example: an input to a skill, plus what is expected
 back. Cases are YAML, one file per case in `cases/`, and the filename must
 match the id.
 
-Cases load and validate, the runner executes them, and the exact scorer
-checks the substring expectations. The fuzzy and judge scorers are not
-built yet, so `reference` and `judge` are parsed but not acted on.
+All three scorers are built. Cases load and validate, the runner executes
+them, and each expectation block is checked by its scorer. What does not
+exist yet is the report: results are returned per case, so there is no
+pass rate across a run and no comparison against a saved baseline.
 
 ```yaml
 id: missing-price-quote        # must match the filename
@@ -131,6 +132,8 @@ pytest
 
 `AGENT_EVALS_MODEL` overrides the model for a run, which is how the same
 cases get compared across model versions. It defaults to `claude-opus-5`.
+`AGENT_EVALS_JUDGE_MODEL` sets the judge separately, defaulting to
+`claude-sonnet-5` so the judge is not grading its own output.
 
 ## How it works
 
@@ -219,6 +222,36 @@ would need labeled data this project does not have. Each case overrides
 it, and the shipped case that uses a reference sets 0.35, because a
 correct draft carries the same facts in its own wording rather than
 reproducing the reference.
+
+### Model as judge
+
+The judge scorer sends the case input, the response, and the case's
+plain-English rubric to a model, and asks for a verdict.
+
+**A three-point scale, not 1 to 10.** Judges cluster hard on 7 and 8 with
+wide scales, which destroys the signal the score is supposed to carry.
+The verdicts are pass, partial, and fail, mapped to 1.0, 0.5, and 0.0,
+and only pass counts as passing.
+
+**Justification before verdict.** The judge writes its reasoning first and
+the verdict second. Asking for the score first produces post-hoc
+rationalization of a number the model already picked.
+
+**Biases mitigated, and how.** Verbosity bias, the judge is instructed to
+ignore length and judge only against the rubric. Self-preference, the
+judge model is configured separately from the model under test and
+defaults to a different one, `claude-sonnet-5` judging `claude-opus-5`.
+Non-determinism, temperature is 0, which reduces variance without
+eliminating it.
+
+**Malformed output fails as an error, never as a pass.** One retry, then
+the case is marked errored with the reason. A score is never guessed from
+unparseable output.
+
+**The judge is not ground truth.** It is a proxy for human evaluation, and
+this project has not measured its agreement with human labels, so no
+claim is made that it is calibrated or validated. Treat a judge verdict
+as evidence, not as a verdict.
 
 ## What this does not do
 

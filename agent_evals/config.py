@@ -70,6 +70,18 @@ def has_api_key() -> bool:
     return bool(os.environ.get("ANTHROPIC_API_KEY", "").strip())
 
 
+def judge_model() -> str | None:
+    """The judge model from AGENT_EVALS_JUDGE_MODEL, or None for the default.
+
+    Configurable separately from the model under test, which is the
+    mitigation for self-preference bias: a model rates its own output more
+    favorably than another model's, so defaulting the judge to a different
+    model keeps that bias out of the score.
+    """
+    value = os.environ.get("AGENT_EVALS_JUDGE_MODEL", "").strip()
+    return value or None
+
+
 def model_override() -> str | None:
     """The model from AGENT_EVALS_MODEL, or None to use the default.
 

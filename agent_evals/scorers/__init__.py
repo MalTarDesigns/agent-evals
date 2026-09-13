@@ -19,6 +19,7 @@ actionable when a run regresses.
 from agent_evals.scorers.base import Score, Scorer
 from agent_evals.scorers.exact import exact_scorer
 from agent_evals.scorers.fuzzy import fuzzy_scorer
+from agent_evals.scorers.judge import judge_scorer
 
 # A plain dict, not a registry. Three scorers do not justify dynamic
 # loading or a plugin system, and the indirection would cost more in
@@ -26,6 +27,14 @@ from agent_evals.scorers.fuzzy import fuzzy_scorer
 SCORERS: dict[str, Scorer] = {
     exact_scorer.name: exact_scorer,
     fuzzy_scorer.name: fuzzy_scorer,
+    judge_scorer.name: judge_scorer,
 }
 
-__all__ = ["Score", "Scorer", "SCORERS", "exact_scorer", "fuzzy_scorer"]
+__all__ = [
+    "Score",
+    "Scorer",
+    "SCORERS",
+    "exact_scorer",
+    "fuzzy_scorer",
+    "judge_scorer",
+]
